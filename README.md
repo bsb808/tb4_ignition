@@ -33,3 +33,12 @@ Test
 source ~/.bashrc
 ros2 run tb4_ignition my_node 
 ```
+
+
+## Turtlebot Ignition
+
+```
+ros2 launch tb4_ignition turtlebot4_ignition.launch.py --show-args
+```
+
+ls .ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/
