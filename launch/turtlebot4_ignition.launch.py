@@ -1,3 +1,6 @@
+# Flattened version of turtlebot4_ignition.launch.py and ignition.launch.py from turtlebot4_simulator/turtlebot4_ignition_bringup
+#
+#
 # Copyright 2023 Clearpath Robotics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,10 +32,13 @@ ARGUMENTS = [
     DeclareLaunchArgument('rviz', default_value='false',
                           choices=['true', 'false'], description='Start rviz.'),
     DeclareLaunchArgument('world', default_value='warehouse',
-                          description='Ignition World: {warehouse, '),
+                          description='Ignition World: {warehousesadf , '),
     DeclareLaunchArgument('model', default_value='standard',
                           choices=['standard', 'lite'],
                           description='Turtlebot4 Model'),
+    DeclareLaunchArgument('use_sim_time', default_value='true',
+                          choices=['true', 'false'],
+                          description='use_sim_time'),
 ]
 
 for pose_element in ['x', 'y', 'z', 'yaw']:
@@ -44,12 +50,44 @@ def generate_launch_description():
     # Directories
     pkg_turtlebot4_ignition_bringup = get_package_share_directory(
         'turtlebot4_ignition_bringup')
+    pkg_turtlebot4_ignition_gui_plugins = get_package_share_directory(
+        'turtlebot4_ignition_gui_plugins')
+    pkg_turtlebot4_description = get_package_share_directory(
+        'turtlebot4_description')
+    pkg_irobot_create_description = get_package_share_directory(
+        'irobot_create_description')
+    pkg_irobot_create_ignition_bringup = get_package_share_directory(
+        'irobot_create_ignition_bringup')
+    pkg_irobot_create_ignition_plugins = get_package_share_directory(
+        'irobot_create_ignition_plugins')
+    pkg_ros_ign_gazebo = get_package_share_directory(
+        'ros_ign_gazebo')
+
+
+    # Set ignition resource path
+    ign_resource_path = SetEnvironmentVariable(
+        name='IGN_GAZEBO_RESOURCE_PATH',
+        value=[
+            os.path.join(pkg_turtlebot4_ignition_bringup, 'worlds'), ':' +
+            os.path.join(pkg_irobot_create_ignition_bringup, 'worlds'), ':' +
+            str(Path(pkg_turtlebot4_description).parent.resolve()), ':' +
+            str(Path(pkg_irobot_create_description).parent.resolve())])
+
+    ign_gui_plugin_path = SetEnvironmentVariable(
+        name='IGN_GUI_PLUGIN_PATH',
+        value=[
+            os.path.join(pkg_turtlebot4_ignition_gui_plugins, 'lib'), ':' +
+            os.path.join(pkg_irobot_create_ignition_plugins, 'lib')])
 
     # Paths
     ignition_launch = PathJoinSubstitution(
         [pkg_turtlebot4_ignition_bringup, 'launch', 'ignition.launch.py'])
     robot_spawn_launch = PathJoinSubstitution(
-        [pkg_turtlebot4_ignition_bringup, 'launch', 'turtlebot4_spawn.launch.py'])
+        [pkg_turtlebot4_ignition_bringup, 'launch',
+         'turtlebot4_spawn.launch.py'])
+    ign_gazebo_launch = PathJoinSubstitution(
+        [pkg_ros_ign_gazebo, 'launch', 'ign_gazebo.launch.py'])
+
 
     ignition = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([ignition_launch]),
