@@ -41,4 +41,19 @@ ros2 run tb4_ignition my_node
 ros2 launch tb4_ignition turtlebot4_ignition.launch.py --show-args
 ```
 
+```
 ls .ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/
+```
+
+Run with the `warehouse.sdf` file from turtlebot4_ignition_bringup
+```
+ros2 launch ./turtlebot4_ignition.launch.py world:=warehouse
+```
+
+Run with 'tb4_warehouse.sdf` file from this repo, tb4_ignition
+```
+ros2 launch ./turtlebot4_ignition.launch.py world:=tb4_warehouse
+```
+
+
+ros2 launch ./turtlebot4_ignition.launch.py list_ign_resources:=true

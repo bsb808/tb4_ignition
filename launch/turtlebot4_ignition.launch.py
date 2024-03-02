@@ -5,11 +5,14 @@ from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
+from launch.actions import GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import LaunchConfigurationEquals, LaunchConfigurationNotEquals
 
 
 ARGUMENTS = [
@@ -18,13 +21,20 @@ ARGUMENTS = [
     DeclareLaunchArgument('rviz', default_value='false',
                           choices=['true', 'false'], description='Start rviz.'),
     DeclareLaunchArgument('world', default_value='warehouse',
-                          description='Ignition World: {warehousesadf , '),
+                          description="""Ignition World.  See files in 
+                          IGN_GAZEBO_RESOURCE_PATH (defined in this source) 
+                          for possible worlds"""),
     DeclareLaunchArgument('model', default_value='standard',
                           choices=['standard', 'lite'],
                           description='Turtlebot4 Model'),
     DeclareLaunchArgument('use_sim_time', default_value='true',
                           choices=['true', 'false'],
                           description='use_sim_time'),
+    DeclareLaunchArgument('list_ign_resources', default_value='false',
+                          choices=['true', 'false'],
+                          description="""If 'true', then list ignition 
+                          resource information, e.g., 
+                          paths, world files, etc."""),
 ]
 
 for pose_element in ['x', 'y', 'z', 'yaw']:
@@ -48,39 +58,25 @@ def generate_launch_description():
         'irobot_create_ignition_plugins')
     pkg_ros_ign_gazebo = get_package_share_directory(
         'ros_ign_gazebo')
-
-
-    # Set ignition resource path
-    ign_resource_path = SetEnvironmentVariable(
-        name='IGN_GAZEBO_RESOURCE_PATH',
-        value=[
-            os.path.join(pkg_turtlebot4_ignition_bringup, 'worlds'), ':' +
-            os.path.join(pkg_irobot_create_ignition_bringup, 'worlds'), ':' +
-            str(Path(pkg_turtlebot4_description).parent.resolve()), ':' +
-            str(Path(pkg_irobot_create_description).parent.resolve())])
-
-    ign_gui_plugin_path = SetEnvironmentVariable(
-        name='IGN_GUI_PLUGIN_PATH',
-        value=[
-            os.path.join(pkg_turtlebot4_ignition_gui_plugins, 'lib'), ':' +
-            os.path.join(pkg_irobot_create_ignition_plugins, 'lib')])
+    pkg_tb4_ignition = get_package_share_directory(
+        'tb4_ignition')
 
     # Paths
-    ignition_launch = PathJoinSubstitution(
-        [pkg_turtlebot4_ignition_bringup, 'launch', 'ignition.launch.py'])
+    #ignition_launch = PathJoinSubstitution(
+    #    [pkg_turtlebot4_ignition_bringup, 'launch', 'ignition.launch.py'])
     robot_spawn_launch = PathJoinSubstitution(
         [pkg_turtlebot4_ignition_bringup, 'launch',
          'turtlebot4_spawn.launch.py'])
-    ign_gazebo_launch = PathJoinSubstitution(
-        [pkg_ros_ign_gazebo, 'launch', 'ign_gazebo.launch.py'])
+    #ign_gazebo_launch = PathJoinSubstitution(
+    #    [pkg_ros_ign_gazebo, 'launch', 'ign_gazebo.launch.py'])
 
 
-    ignition = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([ignition_launch]),
-        launch_arguments=[
-            ('world', LaunchConfiguration('world'))
-        ]
-    )
+   # ignition = IncludeLaunchDescription(
+   #     PythonLaunchDescriptionSource([ignition_launch]),
+   #     launch_arguments=[
+   #         ('world', LaunchConfiguration('world'))
+   #     ]
+   # )
 
     # From turtlebot4_ignition_bringup/launch/ignition.launch.py
     # ---
@@ -88,6 +84,7 @@ def generate_launch_description():
     ign_resource_path = SetEnvironmentVariable(
         name='IGN_GAZEBO_RESOURCE_PATH',
         value=[
+            os.path.join(pkg_tb4_ignition, 'worlds'), ':' +
             os.path.join(pkg_turtlebot4_ignition_bringup, 'worlds'), ':' +
             os.path.join(pkg_irobot_create_ignition_bringup, 'worlds'), ':' +
             str(Path(pkg_turtlebot4_description).parent.resolve()), ':' +
@@ -143,13 +140,32 @@ def generate_launch_description():
             ('yaw', LaunchConfiguration('yaw'))]
         )
 
+    # Action: List Ignition resources
+    list_ign_resources_action = ExecuteProcess(
+        cmd = [[
+            'echo ${IGN_GAZEBO_RESOURCE_PATH} && echo ${IGN_GUI_PLUGIN_PATH}'
+            ]],
+        shell = True,
+        output = 'screen'
+    )
+    
     # Create launch description and add actions
     ld = LaunchDescription(ARGUMENTS)
     #ld.add_action(ignition) - replaced by the 4 actions below
     ld.add_action(ign_resource_path)
     ld.add_action(ign_gui_plugin_path)
-    ld.add_action(ignition_gazebo)
-    ld.add_action(clock_bridge)
-    
-    ld.add_action(robot_spawn)
+
+    # Define two groups, depending on the 'list_ign_resources' argument
+    ga_false = GroupAction([ignition_gazebo,
+                            clock_bridge,
+                            robot_spawn],
+                           condition = LaunchConfigurationEquals(
+                               'list_ign_resources', 'false')
+                           )
+    ga_true = GroupAction([list_ign_resources_action],
+                          condition = LaunchConfigurationEquals(
+                              'list_ign_resources', 'true')
+                          )
+    ld.add_action(ga_false)
+    ld.add_action(ga_true)
     return ld

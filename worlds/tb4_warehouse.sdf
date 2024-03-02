@@ -228,7 +228,7 @@
     </include>
 
     <!-- People -->
-
+    <!--
     <include>
       <uri>
       https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue Randy Sitting
@@ -252,6 +252,6 @@
       <name>Person 2 - Walking</name>
       <pose>-12 15 0 0 0 0</pose>
     </include>
-
+   -->
   </world>
 </sdf>
