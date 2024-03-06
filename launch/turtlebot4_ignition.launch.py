@@ -62,22 +62,11 @@ def generate_launch_description():
         'tb4_ignition')
 
     # Paths
-    #ignition_launch = PathJoinSubstitution(
-    #    [pkg_turtlebot4_ignition_bringup, 'launch', 'ignition.launch.py'])
     robot_spawn_launch = PathJoinSubstitution(
         [pkg_turtlebot4_ignition_bringup, 'launch',
          'turtlebot4_spawn.launch.py'])
-    #ign_gazebo_launch = PathJoinSubstitution(
-    #    [pkg_ros_ign_gazebo, 'launch', 'ign_gazebo.launch.py'])
 
-
-   # ignition = IncludeLaunchDescription(
-   #     PythonLaunchDescriptionSource([ignition_launch]),
-   #     launch_arguments=[
-   #         ('world', LaunchConfiguration('world'))
-   #     ]
-   # )
-
+    # Actions
     # From turtlebot4_ignition_bringup/launch/ignition.launch.py
     # ---
     # Action: Set ignition resource path
@@ -156,12 +145,15 @@ def generate_launch_description():
     ld.add_action(ign_gui_plugin_path)
 
     # Define two groups, depending on the 'list_ign_resources' argument
+    # Conditional GroupActions depending on the 'list_ign_resources' CLI arg.
+    # Default is to start ignition and spawn robot
     ga_false = GroupAction([ignition_gazebo,
                             clock_bridge,
                             robot_spawn],
                            condition = LaunchConfigurationEquals(
                                'list_ign_resources', 'false')
                            )
+    # If arg is 'true', then just report on the environment.
     ga_true = GroupAction([list_ign_resources_action],
                           condition = LaunchConfigurationEquals(
                               'list_ign_resources', 'true')
@@ -169,3 +161,4 @@ def generate_launch_description():
     ld.add_action(ga_false)
     ld.add_action(ga_true)
     return ld
+

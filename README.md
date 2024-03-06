@@ -57,3 +57,5 @@ ros2 launch ./turtlebot4_ignition.launch.py world:=tb4_warehouse
 
 
 ros2 launch ./turtlebot4_ignition.launch.py list_ign_resources:=true
+
+ros2 launch ./turtlebot4_ignition.launch.py log_level:=debug world:=tb4_warehouse
