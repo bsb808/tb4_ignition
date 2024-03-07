@@ -100,10 +100,9 @@ def generate_launch_description():
                           ' -v 4',
                           ' --gui-config ',
                           PathJoinSubstitution(
-                            [pkg_turtlebot4_ignition_bringup,
+                            [pkg_tb4_ignition,
                              'gui',
-                             LaunchConfiguration('model'),
-                             'gui.config'])])
+                             'tb4_gui.config'])])
         ]
     )
 

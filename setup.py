@@ -18,6 +18,7 @@ setup(
         # Install all launch, world, model files matching naming convention
         (os.path.join('share', package_name), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, "worlds"), glob('worlds/*.sdf')),
+        (os.path.join('share', package_name, "gui"), glob('gui/*.config')),
         #(os.path.join('share', package_name, "models", "arashcamera"), glob('models/arashcamera/*')),
     ],
     install_requires=['setuptools','ros_ign_interfaces','ros_ign_gazebo'],
