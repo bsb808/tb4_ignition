@@ -98,11 +98,11 @@ def generate_launch_description():
             ('ign_args', [LaunchConfiguration('world'),
                           '.sdf',
                           ' -v 4',
-                          ' --gui-config ',
-                          PathJoinSubstitution(
-                            [pkg_tb4_ignition,
-                             'gui',
-                             'tb4_gui.config'])])
+                          ' --gui-config '])
+                          #PathJoinSubstitution(
+                          #  [pkg_tb4_ignition,
+                          #   'gui',
+                          #   'tb4_gui.config'])])
         ]
     )
 
